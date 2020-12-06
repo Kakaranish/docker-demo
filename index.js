@@ -1,8 +1,13 @@
 const express = require('express');
 const moment = require('moment');
 const fs = require('fs');
+const redis = require("redis");
 
 const app = express();
+const redisClient = redis.createClient({
+    port: 6379,
+    host: "localhost"
+});
 
 app.get('/log', (req, res) => {
     const logsPath = "./logs/logs.txt";
@@ -14,6 +19,13 @@ app.get('/log', (req, res) => {
 
     console.log("Processed /log request")
     res.send("Log appended\n");
+});
+
+app.get("/redis", (req, res) => {
+    let now = moment.utc().format("YYYY-MM-DD hh:mm:ss");
+    redisClient.set("last_access", now, redis.print);
+
+    res.send(`last_access set to '${now}'\n`);
 });
 
 app.use("*", (_, res) => {
